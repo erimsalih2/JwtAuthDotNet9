@@ -1,6 +1,7 @@
 ﻿using JwtAuthDotNet9.Entities;
 using JwtAuthDotNet9.Models;
 using JwtAuthDotNet9.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +28,7 @@ namespace JwtAuthDotNet9.Controllers
             return BadRequest();
         }
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login(UserDto request)
+        public async Task<ActionResult<TokenResponseDto>> Login(UserDto request)
         {
             var result = await service.LoginAsync(request);
             if (result is not null)
@@ -38,7 +39,29 @@ namespace JwtAuthDotNet9.Controllers
             return BadRequest();
 
         }
-        
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult<TokenResponseDto>> RefreshToken(RefreshTokenRequestDto request)
+        {
+            var result = await service.RefreshTokenAsync(request);
+            if (result is not null)
+            {
+                return Ok(result);
+            }
+            return BadRequest();
+        }
+        [Authorize]
+        [HttpGet]
+        public IActionResult AuthenticatedOnlyEndpoint()
+        {
+            return Ok("Authorized");
+        }
+        [Authorize(Roles ="Admin")]
+        [HttpGet("Admin-Only")]
+        public IActionResult AdminOnlyEndpoint()
+        {
+            return Ok("You are admin");
+        }
+
 
     }
 }
